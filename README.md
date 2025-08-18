@@ -12,8 +12,8 @@ This operator enforces isolation by automatically annotating PVs and validating 
 The main goals of **exa-operator** are:
 
 1. **Mutating Webhook**  
-   - On the first binding of a PV, the operator injects an `origin` annotation (the namespace of the PVC that created the binding).
-   - when a PV is manually created, the operator checks whether any existing PV with the same prefix already has an annotation or a `claimRef`. If such a PV exists, the new PV automatically inherits the same `origin` annotation.
+   - On the **first binding of a static PV** or when a **dynamic PVC is automatically created**, the operator injects an `origin` annotation (the namespace of the PVC that created the binding).  
+   - when a static PV is manually created, the operator checks whether any existing PV with the same prefix already has an annotation or a `claimRef`. If such a PV exists, the new PV automatically inherits the same `origin` annotation.
 2. **Validating Webhook**  
    - With this annotation in place, the validating webhook ensures that PVCs from other namespaces cannot bind to the PV.  
 3. **Controller**  
