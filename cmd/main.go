@@ -245,7 +245,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.PersistentVolume{}, "spec.csi.driver", func(obj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(),
+											   &corev1.PersistentVolume{}, "spec.csi.driver", func(obj client.Object) []string {
 		pv := obj.(*corev1.PersistentVolume)
 		if pv.Spec.CSI != nil {
 			return []string{pv.Spec.CSI.Driver}
