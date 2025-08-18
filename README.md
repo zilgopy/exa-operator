@@ -12,14 +12,14 @@ This operator enforces isolation by automatically annotating PVs and validating 
 The main goals of **exa-operator** are:
 
 1. **Mutating Webhook**  
-   - On the first binding of a PV, the operator injects an `origin` annotation (the namespace of the PVC that created the binding).  
+   - On the first binding of a PV, the operator injects an `origin` annotation (the namespace of the PVC that created the binding).
+   - when a PV is manually created, the operator checks whether any existing PV with the same prefix already has an annotation or a `claimRef`. If such a PV exists, the new PV automatically inherits the same `origin` annotation.
+2. **Validating Webhook**  
    - With this annotation in place, the validating webhook ensures that PVCs from other namespaces cannot bind to the PV.  
-   - Additionally, volumes that share the same prefix with an existing PV are also protected from being bound by PVCs in other namespaces.
-
-2. **Controller**  
+3. **Controller**  
    - For existing PVs (created before the operator was installed), the controller automatically patches them with the appropriate `origin` annotation to enforce the same isolation rules.
 
-In short, `exa-operator` provides **namespace-level volume isolation** for CSI drivers that lack this functionality by default.
+In short, `exa-operator` provides **namespace-level volume isolation** for exascaler CSI drivers that lack this functionality by default.
 
 ---
 
