@@ -1,0 +1,350 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+    control-plane: controller-manager
+  name: exa-operator-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+  name: exa-operator-controller-manager
+  namespace: exa-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+  name: exa-operator-leader-election-role
+  namespace: exa-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: exa-operator-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - zilgopy
+  resources:
+  - dummies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - zilgopy
+  resources:
+  - dummies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - zilgopy
+  resources:
+  - dummies/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: exa-operator-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: exa-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+  name: exa-operator-leader-election-rolebinding
+  namespace: exa-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: exa-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: exa-operator-controller-manager
+  namespace: exa-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+  name: exa-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: exa-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: exa-operator-controller-manager
+  namespace: exa-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: exa-operator-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: exa-operator-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: exa-operator-controller-manager
+  namespace: exa-operator-system
+---
+apiVersion: v1
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURvakNDQW9xZ0F3SUJBZ0lVY2duUURpUU04Z0F4WVNraEtQdTZiWmlhMkQ0d0RRWUpLb1pJaHZjTkFRRUwKQlFBd1B6RTlNRHNHQTFVRUF3dzBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHZiMnN0YzJWeWRtbGpaUzVsZUdFdApiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFlRncweU5UQTRNVGd3T1RRMU1ESmFGdzB5TmpBNE1UZ3dPVFExCk1ESmFNRDh4UFRBN0JnTlZCQU1NTkdWNFlTMXZjR1Z5WVhSdmNpMTNaV0pvYjI5ckxYTmxjblpwWTJVdVpYaGgKTFc5d1pYSmhkRzl5TFhONWMzUmxiUzV6ZG1Nd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFSwpBb0lCQVFDY2VQTzdncmNRUndKOG1MZzVpbjBYa1hxSXIva3cvMVZVWnVlelZOZTdFdmQwVU56SlNjY21GQ3J2Ckt5WjRKcHh4SlVoMk4xTTNnZ2JBdDdhZEpnYzdiWngvS2lCY0ExLzVKM25RYWJwS3Yrc3NDNmdTZ285NXg4YnQKYXViOXhwZUxrNEZaamZCM1VJcjQ4L1JkSkE4TFZKUEdEV3dCVTNYNktzcWpFRFQ2KzFrOURtVVpmUEx1Sm42TApzaDk4OHRMMWtrODY5RGdpcnZqREJFWGpleit1SnpLS3NLUWFMcnRuTEd4ZzRDYU1DdDA5Z0dXZi9IN0ZWZlpsCnNML2hRUmtpSnYyL3VWdTY3eURPNi9raW9kYXdFekJmSzBMYnEwaTRSb2lsY2o4d3Rab05ROVJwK01ROTg1YVAKQ0htS1ZhU0Zlc0c1NUtwYVMrcnZoTTMxL1VTekFnTUJBQUdqZ1pVd2daSXdIUVlEVlIwT0JCWUVGR29ISlBBbApHZTdPOHZqaC9HMlVQbVk0NGMvVU1COEdBMVVkSXdRWU1CYUFGR29ISlBBbEdlN084dmpoL0cyVVBtWTQ0Yy9VCk1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d1B3WURWUjBSQkRnd05vSTBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHYKYjJzdGMyVnlkbWxqWlM1bGVHRXRiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQVBGR1Eyenl5NHc1blVZZVFSM2dHM2NBeitiNmNvQVJXU212RDZzTzRQeGlFa1JQY3plald2RFJzClUvSzJsTUxSdk00RTNoNWNETmIrU2RUNlRPcU1FMUgvSlM1UnBwci9FYVk2a2krQ3QvSy9tMWVsOHNqS0kvbTUKWWZQM3U3Y2YwYnkvcU1BbWdXaTV5dnJnbDBTT1YvL1gyNE9ma3h0dktpU25scnBmUkxlOEVQNDlqYnZJM1V5QQovK3I5c0FaWCtKZ0pmNXF4ZnBSelprQ0RJeFB2VXlCSTQ2eDNnUXZ6VHMrd2JSOGo0K1V1V0pvbWh1cVJIVk9XCjM5RE5tK1JKekxFTlFvelVSR3Q0Z0l5RnFYbXg5TzgzQ05PMGI2bG8vbzByc0d4OTJGNVVvS0U0N0Vja3FXU1oKWWhnWWJrY0lVeHJ5KzBvbWlucDRlNUNJRi8yT0pRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQ2NlUE83Z3JjUVJ3SjgKbUxnNWluMFhrWHFJci9rdy8xVlVadWV6Vk5lN0V2ZDBVTnpKU2NjbUZDcnZLeVo0SnB4eEpVaDJOMU0zZ2diQQp0N2FkSmdjN2JaeC9LaUJjQTEvNUozblFhYnBLditzc0M2Z1Nnbzk1eDhidGF1Yjl4cGVMazRGWmpmQjNVSXI0CjgvUmRKQThMVkpQR0RXd0JVM1g2S3NxakVEVDYrMWs5RG1VWmZQTHVKbjZMc2g5ODh0TDFrazg2OURnaXJ2akQKQkVYamV6K3VKektLc0tRYUxydG5MR3hnNENhTUN0MDlnR1dmL0g3RlZmWmxzTC9oUVJraUp2Mi91VnU2N3lETwo2L2tpb2Rhd0V6QmZLMExicTBpNFJvaWxjajh3dFpvTlE5UnArTVE5ODVhUENIbUtWYVNGZXNHNTVLcGFTK3J2CmhNMzEvVVN6QWdNQkFBRUNnZ0VBS1BhTk1FaXZMaWE0NHUrRVF5UWJUWUU3Wis5UnVGOFA4ckdoOU5QQVNteFQKdGZLNWFrVFRTd2U2bWJSZE5OVSszV3dhUlVDRW02S0JyQkFzVVlXMEhQMjhHNXBtc0UvOTN4ZFRqNWt1T1FWMwpScWVpajMzNG03UU9RdmRhazVOYTl5SmRtWmxNRzZCTlVaRmtKc0lhNGlkNUxEODFTRCtXUWpEVHJjNi9YL2ptCmY1Nkl3RG0xN1Z3cGVsWi83QWNqQllJZjdGeXp0U1doR24yMGRLOHR2QXE2U2UwcHlDSTFiTFdRTUxaNklDSGQKOFk3ZmxPaXRQcWFMNWJBVG1tVVZSYythK2VDMkp5U2ZpeU5xTXcyZVdrdk9WMW8yMUJySUxtMS9TVmFjTlRpMwpreldaYVhKUk9OUC9QR1dyYUkwdFNEMXVhSDF6eHV6cURPMVZpbXMwNFFLQmdRREpIR01veTljdTlEdU5rc0VNCmRVZXRkUlcycm1PTXdSY1JyZk9wanlvdXdZMm1mcUIwRlFHcCtVbEdMNC9zRFlySytrb0RqTWgwYmhHTWFSTVQKOWZ2S2E4aTRjcW8yRDhCOVVsYkFQd3ZFSmluNk5uRmJ1Y0l2QzJPWkIvdFFRWjJFbXRtczVacFlidWlDTm9vawp4VUlGdkR5SzdpOC9nZm5XQzFrRVBCaW9vd0tCZ1FESExhMzE2TldPSjdHeEZvdWJoUVRwSHk4OUpvcHVjaTQyCm5Bc1hObzMvVUdvZmhFcER1ZmxuTmlDcmlhYWIxRzQ1ZzI5c2tWZDlqbCtxb3RZa3Jza2NIZVJpVUxDTUlpNUIKWHB0d2NxcW9TWkcwaGRyY1Z2Mk5nUTJrN0VPWXpDS2UvWEkzcFdEUVBYRFBYL1NWU1BoQjhQZVJlTk1QdTBuMwpCWkxQaUx0a3NRS0JnSEpLMUx1eHBMZ0ZpdmE1U1VjSU85VURMblRraEtUUWM0alRvQjlqd21oU0RXdHFtVXQvClNMUE5mV3dLeWJNd093bUIxcUJQMlBmNk9iVGZYajFBMVhqRGFvNFFkRlZHL0hEOFkxcmNPWmFlemNwcU9HQVYKb0pyVjBTTitHc0FRbWpGclEzdnovSlIzYTJIZEZ3TXdxNFhRNVdOYlc3U3U3RXBOcHFnMmN4a2JBb0dCQU1YRAo1V2ExdU5WZE5HSFJNTzFLTm9ZQ0lMVm0veXlLMHJnR1dEekVQbG16VHF2Y2ZxQ2dsN0tUVy96MndDY1oxaGZsCkdVMkRRb3U0UWVUN3FnVGlSMjFUZ09EZG5XNkd3Y2JHV1RCZHFuVk9GdzVYbWVnTnQ5UTR2NE54MCt4elJDejUKR2QrR3BZb2VkMVJ3d2prNEtzZk9xd0lXSmZzSXkzZ3FZSXNRQ0lFQkFvR0JBS2FZS1ZQQWp2OUI3MFpiTkdBZApCMTVOQVRpMldNZmhOM0tGd0dvWGxwVVBQRmlhU2dFZjdCL2JUZGUrL01mbkt4MFRQaEhsOVhRcU1rMlpLTTErCmgySmRaeGdGWlRYalhVdHNaV0djdWQ5TnF4d0NNR0k1UDhJV0RNY002bGhGUGgwMFpuMHBCZk5yT2lWaWMza3kKYkd1TWNvQ0VoRFJaM3JSODRkZy9xbTVUCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+kind: Secret
+metadata:
+  name: exa-operator-webhook-server-cert
+  namespace: exa-operator-system
+type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+    control-plane: controller-manager
+  name: exa-operator-controller-manager-metrics-service
+  namespace: exa-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app.kubernetes.io/name: exa-operator
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+  name: exa-operator-webhook-service
+  namespace: exa-operator-system
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 9443
+  selector:
+    app.kubernetes.io/name: exa-operator
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: exa-operator
+    control-plane: controller-manager
+  name: exa-operator-controller-manager
+  namespace: exa-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: exa-operator
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        app.kubernetes.io/name: exa-operator
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+        command:
+        - /manager
+        image: zilgopy/controller:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: webhook-certs
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: exa-operator-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: exa-operator-webhook-server-cert
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: exa-operator-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: exa-operator-webhook-service
+      namespace: exa-operator-system
+      path: /mutate--v1-persistentvolume
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURvakNDQW9xZ0F3SUJBZ0lVY2duUURpUU04Z0F4WVNraEtQdTZiWmlhMkQ0d0RRWUpLb1pJaHZjTkFRRUwKQlFBd1B6RTlNRHNHQTFVRUF3dzBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHZiMnN0YzJWeWRtbGpaUzVsZUdFdApiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFlRncweU5UQTRNVGd3T1RRMU1ESmFGdzB5TmpBNE1UZ3dPVFExCk1ESmFNRDh4UFRBN0JnTlZCQU1NTkdWNFlTMXZjR1Z5WVhSdmNpMTNaV0pvYjI5ckxYTmxjblpwWTJVdVpYaGgKTFc5d1pYSmhkRzl5TFhONWMzUmxiUzV6ZG1Nd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFSwpBb0lCQVFDY2VQTzdncmNRUndKOG1MZzVpbjBYa1hxSXIva3cvMVZVWnVlelZOZTdFdmQwVU56SlNjY21GQ3J2Ckt5WjRKcHh4SlVoMk4xTTNnZ2JBdDdhZEpnYzdiWngvS2lCY0ExLzVKM25RYWJwS3Yrc3NDNmdTZ285NXg4YnQKYXViOXhwZUxrNEZaamZCM1VJcjQ4L1JkSkE4TFZKUEdEV3dCVTNYNktzcWpFRFQ2KzFrOURtVVpmUEx1Sm42TApzaDk4OHRMMWtrODY5RGdpcnZqREJFWGpleit1SnpLS3NLUWFMcnRuTEd4ZzRDYU1DdDA5Z0dXZi9IN0ZWZlpsCnNML2hRUmtpSnYyL3VWdTY3eURPNi9raW9kYXdFekJmSzBMYnEwaTRSb2lsY2o4d3Rab05ROVJwK01ROTg1YVAKQ0htS1ZhU0Zlc0c1NUtwYVMrcnZoTTMxL1VTekFnTUJBQUdqZ1pVd2daSXdIUVlEVlIwT0JCWUVGR29ISlBBbApHZTdPOHZqaC9HMlVQbVk0NGMvVU1COEdBMVVkSXdRWU1CYUFGR29ISlBBbEdlN084dmpoL0cyVVBtWTQ0Yy9VCk1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d1B3WURWUjBSQkRnd05vSTBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHYKYjJzdGMyVnlkbWxqWlM1bGVHRXRiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQVBGR1Eyenl5NHc1blVZZVFSM2dHM2NBeitiNmNvQVJXU212RDZzTzRQeGlFa1JQY3plald2RFJzClUvSzJsTUxSdk00RTNoNWNETmIrU2RUNlRPcU1FMUgvSlM1UnBwci9FYVk2a2krQ3QvSy9tMWVsOHNqS0kvbTUKWWZQM3U3Y2YwYnkvcU1BbWdXaTV5dnJnbDBTT1YvL1gyNE9ma3h0dktpU25scnBmUkxlOEVQNDlqYnZJM1V5QQovK3I5c0FaWCtKZ0pmNXF4ZnBSelprQ0RJeFB2VXlCSTQ2eDNnUXZ6VHMrd2JSOGo0K1V1V0pvbWh1cVJIVk9XCjM5RE5tK1JKekxFTlFvelVSR3Q0Z0l5RnFYbXg5TzgzQ05PMGI2bG8vbzByc0d4OTJGNVVvS0U0N0Vja3FXU1oKWWhnWWJrY0lVeHJ5KzBvbWlucDRlNUNJRi8yT0pRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  failurePolicy: Fail
+  name: mpersistentvolume-v1.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - persistentvolumes
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: exa-operator-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: exa-operator-webhook-service
+      namespace: exa-operator-system
+      path: /validate--v1-persistentvolume
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURvakNDQW9xZ0F3SUJBZ0lVY2duUURpUU04Z0F4WVNraEtQdTZiWmlhMkQ0d0RRWUpLb1pJaHZjTkFRRUwKQlFBd1B6RTlNRHNHQTFVRUF3dzBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHZiMnN0YzJWeWRtbGpaUzVsZUdFdApiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFlRncweU5UQTRNVGd3T1RRMU1ESmFGdzB5TmpBNE1UZ3dPVFExCk1ESmFNRDh4UFRBN0JnTlZCQU1NTkdWNFlTMXZjR1Z5WVhSdmNpMTNaV0pvYjI5ckxYTmxjblpwWTJVdVpYaGgKTFc5d1pYSmhkRzl5TFhONWMzUmxiUzV6ZG1Nd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFSwpBb0lCQVFDY2VQTzdncmNRUndKOG1MZzVpbjBYa1hxSXIva3cvMVZVWnVlelZOZTdFdmQwVU56SlNjY21GQ3J2Ckt5WjRKcHh4SlVoMk4xTTNnZ2JBdDdhZEpnYzdiWngvS2lCY0ExLzVKM25RYWJwS3Yrc3NDNmdTZ285NXg4YnQKYXViOXhwZUxrNEZaamZCM1VJcjQ4L1JkSkE4TFZKUEdEV3dCVTNYNktzcWpFRFQ2KzFrOURtVVpmUEx1Sm42TApzaDk4OHRMMWtrODY5RGdpcnZqREJFWGpleit1SnpLS3NLUWFMcnRuTEd4ZzRDYU1DdDA5Z0dXZi9IN0ZWZlpsCnNML2hRUmtpSnYyL3VWdTY3eURPNi9raW9kYXdFekJmSzBMYnEwaTRSb2lsY2o4d3Rab05ROVJwK01ROTg1YVAKQ0htS1ZhU0Zlc0c1NUtwYVMrcnZoTTMxL1VTekFnTUJBQUdqZ1pVd2daSXdIUVlEVlIwT0JCWUVGR29ISlBBbApHZTdPOHZqaC9HMlVQbVk0NGMvVU1COEdBMVVkSXdRWU1CYUFGR29ISlBBbEdlN084dmpoL0cyVVBtWTQ0Yy9VCk1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d1B3WURWUjBSQkRnd05vSTBaWGhoTFc5d1pYSmhkRzl5TFhkbFltaHYKYjJzdGMyVnlkbWxqWlM1bGVHRXRiM0JsY21GMGIzSXRjM2x6ZEdWdExuTjJZekFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQVBGR1Eyenl5NHc1blVZZVFSM2dHM2NBeitiNmNvQVJXU212RDZzTzRQeGlFa1JQY3plald2RFJzClUvSzJsTUxSdk00RTNoNWNETmIrU2RUNlRPcU1FMUgvSlM1UnBwci9FYVk2a2krQ3QvSy9tMWVsOHNqS0kvbTUKWWZQM3U3Y2YwYnkvcU1BbWdXaTV5dnJnbDBTT1YvL1gyNE9ma3h0dktpU25scnBmUkxlOEVQNDlqYnZJM1V5QQovK3I5c0FaWCtKZ0pmNXF4ZnBSelprQ0RJeFB2VXlCSTQ2eDNnUXZ6VHMrd2JSOGo0K1V1V0pvbWh1cVJIVk9XCjM5RE5tK1JKekxFTlFvelVSR3Q0Z0l5RnFYbXg5TzgzQ05PMGI2bG8vbzByc0d4OTJGNVVvS0U0N0Vja3FXU1oKWWhnWWJrY0lVeHJ5KzBvbWlucDRlNUNJRi8yT0pRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  failurePolicy: Fail
+  name: vpersistentvolume-v1.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - persistentvolumes
+  sideEffects: None
