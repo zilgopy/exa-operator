@@ -6,8 +6,6 @@ By default, all users can see all PersistentVolumes (PVs). Since PV specs expose
 
 This operator provides **additional capabilities** for exa-csi-driver by automatically annotating PVs and validating PVC binding requests, ensuring that users cannot access volumes outside their namespace. 
 
----
-
 ## Description
 The main goals of **exa-operator** are:
 
@@ -20,8 +18,6 @@ The main goals of **exa-operator** are:
    - For existing PVs (created before the operator was installed), the controller automatically patches them with the appropriate `origin` annotation to enforce the same isolation rules.
 
 In short, `exa-operator` provides **namespace-level volume isolation** for exascaler CSI drivers that lack this functionality by default.
-
----
 
 ## Deploy on the cluster
 
