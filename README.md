@@ -28,7 +28,7 @@ In short, `exa-operator` provides **namespace-level volume isolation** for exasc
 **Apply the combined manifest:**
 ```sh
 kubectl apply -f operator.yaml
-
+```
 
 This single YAML file contains all resources needed to install the operator:
 
