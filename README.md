@@ -23,16 +23,18 @@ In short, `exa-operator` provides **namespace-level volume isolation** for exasc
 
 ---
 
-## Getting Started
+### Deploy on the cluster
 
-### Prerequisites
-- go version v1.24.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
-
-### Deploy on a cluster
-
-**Build and push your image to the location specified by `IMG`:**
+**Apply the combined manifest:**
 ```sh
-make docker-build docker-push IMG=<some-registry>/exa-operator:tag
+kubectl apply -f operator.yaml
+
+
+This single YAML file contains all resources needed to install the operator:
+
+- CRDs
+- RBAC
+- Deployment (controller + webhook)
+- Webhook TLS Secret
+- MutatingWebhookConfiguration
+- ValidatingWebhookConfiguration
