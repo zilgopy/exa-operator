@@ -23,7 +23,7 @@ In short, `exa-operator` provides **namespace-level volume isolation** for exasc
 
 ---
 
-### Deploy on the cluster
+## Deploy on the cluster
 
 **Prerequisite:** Ensure that [`exa-csi-driver`](https://github.com/DDNStorage/exa-csi-driver) is correctly deployed in your cluster before deploying the operator.  
 This operator relies on the CSI driver for PV provisioning and binding.
