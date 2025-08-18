@@ -1,8 +1,8 @@
 # exa-operator
 
 ## Overview
-`exa-operator` is a Kubernetes operator designed to enhance **storage isolation** in environments where CSI drivers do not provide sufficient protection.  
-By default, all users can see all PersistentVolumes (PVs). Since PV specs expose the `volumeHandle` (e.g., an NFS path), malicious or careless users can manually create PVCs bound to volumes belonging to other namespaces.  
+`exa-operator` is a Kubernetes operator designed to enhance **storage isolation** in environments where [`exa-csi-driver`](https://github.com/DDNStorage/exa-csi-driver) do not provide sufficient protection.  
+By default, all users can see all PersistentVolumes (PVs). Since PV specs expose the `volumeHandle` (e.g., an lustrefs path), malicious or careless users can manually create PVCs bound to volumes belonging to other namespaces.  
 
 This operator enforces isolation by automatically annotating PVs and validating PVC binding requests, ensuring that users cannot access volumes outside their namespace.
 
