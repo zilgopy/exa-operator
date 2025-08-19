@@ -32,7 +32,6 @@ kubectl apply -f operator.yaml
 
 This single YAML file contains all resources needed to install the operator:
 
-- CRDs
 - RBAC
 - Deployment (controller + webhook)
 - Webhook TLS Secret
